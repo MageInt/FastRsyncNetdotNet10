@@ -4,15 +4,16 @@
   </PropertyGroup>
   <PropertyGroup>
 
-    <TargetFrameworks>net462;netstandard2.0;net10.0</TargetFrameworks>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
     <PackageId>FastRsyncNet</PackageId>
     <Authors>Grzegorz Blok</Authors>
     <PackageProjectUrl>https://github.com/GrzegorzBlok/FastRsyncNet</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <AssemblyVersion>2.5.0</AssemblyVersion>
-    <FileVersion>2.5.0</FileVersion>
-    <Version>2.5.0</Version>
+    <AssemblyVersion>3.0.0</AssemblyVersion>
+    <FileVersion>3.0.0</FileVersion>
+    <Version>3.0.0</Version>
     <PackageTags>sync;rsync;synchronization</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>
@@ -39,9 +40,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="10.0.2"/>
     <PackageReference Include="System.IO.Hashing" Version="10.0.2"/>
-    <PackageReference Include="System.Memory" Version="4.6.3" Condition="'$(TargetFramework)' != 'net10.0'"/>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />

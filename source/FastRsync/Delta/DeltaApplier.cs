@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.IO;
 using System.Threading;
@@ -21,30 +22,36 @@ namespace FastRsync.Delta
 
         public void Apply(Stream basisFileStream, IDeltaReader delta, Stream outputStream)
         {
-            var buffer = new byte[readBufferSize];
-
-            delta.Apply(
-                writeData: (data) => outputStream.Write(data, 0, data.Length),
-                copy: (startPosition, length) =>
-                {
-                    basisFileStream.Seek(startPosition, SeekOrigin.Begin);
-
-                    int read;
-                    long soFar = 0;
-                    while ((read = basisFileStream.Read(buffer, 0, (int)Math.Min(length - soFar, buffer.Length))) > 0)
-                    {
-                        soFar += read;
-                        outputStream.Write(buffer, 0, read);
-                    }
-                });
-
-            if (!SkipHashCheck)
+            byte[]? buffer = ArrayPool<byte>.Shared.Rent(readBufferSize);
+            try
             {
-                if (!HashCheck(delta, outputStream))
+                delta.Apply(
+                    writeData: (data) => outputStream.Write(data, 0, data.Length),
+                    copy: (startPosition, length) =>
+                    {
+                        basisFileStream.Seek(startPosition, SeekOrigin.Begin);
+
+                        int read;
+                        long soFar = 0;
+                        while ((read = basisFileStream.Read(buffer, 0, (int)Math.Min(length - soFar, readBufferSize))) > 0)
+                        {
+                            soFar += read;
+                            outputStream.Write(buffer, 0, read);
+                        }
+                    });
+
+                if (!SkipHashCheck)
                 {
-                    throw new InvalidDataException(
-                        $"Verification of the patched file failed. The {delta.HashAlgorithm.Name} hash of the patch result file, and the file that was used as input for the delta, do not match. This can happen if the basis file changed since the signatures were calculated.");
+                    if (!HashCheck(delta, outputStream))
+                    {
+                        throw new InvalidDataException(
+                            $"Verification of the patched file failed. The {delta.HashAlgorithm.Name} hash of the patch result file, and the file that was used as input for the delta, do not match. This can happen if the basis file changed since the signatures were calculated.");
+                    }
                 }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 
@@ -53,30 +60,36 @@ namespace FastRsync.Delta
 
         public async Task ApplyAsync(Stream basisFileStream, IDeltaReader delta, Stream outputStream, CancellationToken cancellationToken)
         {
-            var buffer = new byte[readBufferSize];
-
-            await delta.ApplyAsync(
-                writeData: async (data) => await outputStream.WriteAsync(data, 0, data.Length, cancellationToken).ConfigureAwait(false),
-                copy: async (startPosition, length) =>
-                {
-                    basisFileStream.Seek(startPosition, SeekOrigin.Begin);
-
-                    int read;
-                    long soFar = 0;
-                    while ((read = await basisFileStream.ReadAsync(buffer, 0, (int)Math.Min(length - soFar, buffer.Length), cancellationToken).ConfigureAwait(false)) > 0)
-                    {
-                        soFar += read;
-                        await outputStream.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
-                    }
-                }, cancellationToken).ConfigureAwait(false);
-
-            if (!SkipHashCheck)
+            byte[]? buffer = ArrayPool<byte>.Shared.Rent(readBufferSize);
+            try
             {
-                if (!await HashCheckAsync(delta, outputStream, cancellationToken).ConfigureAwait(false))
+                await delta.ApplyAsync(
+                    writeData: async (data) => await outputStream.WriteAsync(data, 0, data.Length, cancellationToken).ConfigureAwait(false),
+                    copy: async (startPosition, length) =>
+                    {
+                        basisFileStream.Seek(startPosition, SeekOrigin.Begin);
+
+                        int read;
+                        long soFar = 0;
+                        while ((read = await basisFileStream.ReadAsync(buffer, 0, (int)Math.Min(length - soFar, readBufferSize), cancellationToken).ConfigureAwait(false)) > 0)
+                        {
+                            soFar += read;
+                            await outputStream.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
+                        }
+                    }, cancellationToken).ConfigureAwait(false);
+
+                if (!SkipHashCheck)
                 {
-                    throw new InvalidDataException(
-                        $"Verification of the patched file failed. The {delta.Metadata.ExpectedFileHashAlgorithm} hash of the patch result file, and the file that was used as input for the delta, do not match. This can happen if the basis file changed since the signatures were calculated.");
+                    if (!await HashCheckAsync(delta, outputStream, cancellationToken).ConfigureAwait(false))
+                    {
+                        throw new InvalidDataException(
+                            $"Verification of the patched file failed. The {delta.Metadata.ExpectedFileHashAlgorithm} hash of the patch result file, and the file that was used as input for the delta, do not match. This can happen if the basis file changed since the signatures were calculated.");
+                    }
                 }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
             }
         }
 

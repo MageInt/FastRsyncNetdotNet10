@@ -1,4 +1,6 @@
-﻿namespace FastRsync.Hash
+﻿using System;
+
+namespace FastRsync.Hash
 {
     public class Adler32RollingChecksumV2 : IRollingChecksum
     {
@@ -17,6 +19,19 @@
                 b = (b + a) % Modulus;
             }
             return (uint)((b << 16) | a);
+        }
+
+        public uint Calculate(ReadOnlySpan<byte> block)
+        {
+            var a = 1u;
+            var b = 0u;
+            for (var i = 0; i < block.Length; i++)
+            {
+                uint z = block[i];
+                a = (z + a) % Modulus;
+                b = (b + a) % Modulus;
+            }
+            return (b << 16) | a;
         }
 
         public uint Rotate(uint checksum, byte remove, byte add, int chunkSize)

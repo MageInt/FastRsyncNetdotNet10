@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "dotnet build": true,
+        "dir": true,
+        "dotnet run": true,
+        "Push-Location": true
+    }
+}

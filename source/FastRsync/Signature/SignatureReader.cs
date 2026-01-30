@@ -58,6 +58,8 @@ namespace FastRsync.Signature
             var metadata =
  JsonSerializer.Deserialize<SignatureMetadata>(metadataStr, JsonSerializationSettings.JsonSettings);
 #endif
+            if (metadata == null)
+                throw new InvalidDataException("Failed to deserialize signature metadata.");
             var signature = new Signature(metadata, RsyncFormatType.FastRsync);
 
             return signature;
@@ -84,7 +86,9 @@ namespace FastRsync.Signature
             var signature = new Signature(new SignatureMetadata
             {
                 ChunkHashAlgorithm = hashAlgorithm.Name,
-                RollingChecksumAlgorithm = rollingChecksumAlgorithm.Name
+                RollingChecksumAlgorithm = rollingChecksumAlgorithm.Name,
+                BaseFileHashAlgorithm = "SHA1",
+                BaseFileHash = ""
             }, RsyncFormatType.Octodiff);
 
             return signature;

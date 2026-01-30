@@ -19,6 +19,19 @@ namespace FastRsync.Hash
             return (UInt32) ((b << 16) | a);
         }
 
+        public UInt32 Calculate(ReadOnlySpan<byte> block)
+        {
+            var a = 1;
+            var b = 0;
+            for (var i = 0; i < block.Length; i++)
+            {
+                var z = block[i];
+                a = (ushort)(z + a);
+                b = (ushort)(b + a);
+            }
+            return (UInt32) ((b << 16) | a);
+        }
+
         public UInt32 Rotate(UInt32 checksum, byte remove, byte add, int chunkSize)
         {
             var b = (ushort)(checksum >> 16 & 0xffff);

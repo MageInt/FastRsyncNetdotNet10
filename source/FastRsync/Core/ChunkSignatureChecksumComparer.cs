@@ -4,8 +4,9 @@ namespace FastRsync.Core
 {
     class ChunkSignatureChecksumComparer : IComparer<ChunkSignature>
     {
-        public int Compare(ChunkSignature x, ChunkSignature y)
+        public int Compare(ChunkSignature? x, ChunkSignature? y)
         {
+            if (x == null || y == null) return 0;
             var comparison = x.RollingChecksum.CompareTo(y.RollingChecksum);
             return comparison == 0 ? x.StartOffset.CompareTo(y.StartOffset) : comparison;
         }
