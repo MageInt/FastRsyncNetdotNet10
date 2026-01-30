@@ -17,11 +17,10 @@ namespace FastRsync.Delta
 
         public DeltaBuilder(int readBufferSize = 4 * 1024 * 1024)
         {
-            ProgressReport = null;
             this.readBufferSize = readBufferSize;
         }
 
-        public IProgress<ProgressReport> ProgressReport { get; set; }
+        public IProgress<ProgressReport>? ProgressReport { get; set; }
 
         public void BuildDelta(Stream newFileStream, ISignatureReader signatureReader, IDeltaWriter deltaWriter)
         {

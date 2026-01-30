@@ -25,10 +25,10 @@ namespace FastRsync.Signature
             HashAlgorithm = hashAlgorithm;
             RollingChecksumAlgorithm = rollingChecksumAlgorithm;
             ChunkSize = DefaultChunkSize;
-            ProgressReport = null;
+            ProgressReport = null!;
         }
 
-        public IProgress<ProgressReport> ProgressReport { get; set; }
+        public IProgress<ProgressReport>? ProgressReport { get; set; }
 
         public IHashAlgorithm HashAlgorithm { get; set; }
 

@@ -5,6 +5,7 @@
   <PropertyGroup>
 
     <TargetFrameworks>net10.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
     <PackageId>FastRsyncNet</PackageId>
     <Authors>Grzegorz Blok</Authors>
     <PackageProjectUrl>https://github.com/GrzegorzBlok/FastRsyncNet</PackageProjectUrl>

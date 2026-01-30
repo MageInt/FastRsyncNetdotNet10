@@ -15,8 +15,8 @@ namespace FastRsync.Delta
     {
         private readonly BinaryReader reader;
         private readonly IProgress<ProgressReport> progressReport;
-        private byte[] expectedHash;
-        private IHashAlgorithm hashAlgorithm;
+        private byte[] expectedHash = null!;
+        private IHashAlgorithm hashAlgorithm = null!;
         private readonly int readBufferSize;
 
         public BinaryDeltaReader(Stream stream, IProgress<ProgressReport> progressHandler,
@@ -27,7 +27,7 @@ namespace FastRsync.Delta
             this.readBufferSize = readBufferSize;
         }
 
-        private DeltaMetadata _metadata;
+        private DeltaMetadata _metadata = null!;
         private RsyncFormatType type;
 
         public DeltaMetadata Metadata
@@ -98,9 +98,9 @@ namespace FastRsync.Delta
 
             var metadataStr = reader.ReadString();
 #if NET7_0_OR_GREATER
-            _metadata = JsonSerializer.Deserialize(metadataStr, JsonContextCore.Default.DeltaMetadata);
+            _metadata = JsonSerializer.Deserialize(metadataStr, JsonContextCore.Default.DeltaMetadata) ?? throw new InvalidDataException("Failed to deserialize delta metadata.");
 #else
-            _metadata = JsonSerializer.Deserialize<DeltaMetadata>(metadataStr, JsonSerializationSettings.JsonSettings);
+            _metadata = JsonSerializer.Deserialize<DeltaMetadata>(metadataStr, JsonSerializationSettings.JsonSettings) ?? throw new InvalidDataException("Failed to deserialize delta metadata.");
 #endif
             hashAlgorithm = SupportedAlgorithms.Hashing.Create(_metadata.HashAlgorithm);
             expectedHash = Convert.FromBase64String(_metadata.ExpectedFileHash);
@@ -127,7 +127,9 @@ namespace FastRsync.Delta
             {
                 HashAlgorithm = hashAlgorithmName,
                 ExpectedFileHashAlgorithm = hashAlgorithmName,
-                ExpectedFileHash = Convert.ToBase64String(expectedHash)
+                ExpectedFileHash = Convert.ToBase64String(expectedHash),
+                BaseFileHashAlgorithm = "SHA1",
+                BaseFileHash = ""
             };
 
             type = RsyncFormatType.Octodiff;

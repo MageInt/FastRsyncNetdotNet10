@@ -2,10 +2,10 @@
 {
     public class DeltaMetadata
     {
-        public string HashAlgorithm { get; set; }
-        public string ExpectedFileHashAlgorithm { get; set; }
-        public string ExpectedFileHash { get; set; }
-        public string BaseFileHashAlgorithm { get; set; }
-        public string BaseFileHash { get; set; }
+        public required string HashAlgorithm { get; set; }
+        public required string ExpectedFileHashAlgorithm { get; set; }
+        public required string ExpectedFileHash { get; set; }
+        public required string BaseFileHashAlgorithm { get; set; }
+        public required string BaseFileHash { get; set; }
     }
 }

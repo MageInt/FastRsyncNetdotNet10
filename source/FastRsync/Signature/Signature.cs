@@ -6,10 +6,10 @@ namespace FastRsync.Signature
 {
     public class SignatureMetadata
     {
-        public string ChunkHashAlgorithm { get; set; }
-        public string RollingChecksumAlgorithm { get; set; }
-        public string BaseFileHashAlgorithm { get; set; }
-        public string BaseFileHash { get; set; }
+        public required string ChunkHashAlgorithm { get; set; }
+        public required string RollingChecksumAlgorithm { get; set; }
+        public required string BaseFileHashAlgorithm { get; set; }
+        public required string BaseFileHash { get; set; }
     }
 
     public enum RsyncFormatType
@@ -29,10 +29,10 @@ namespace FastRsync.Signature
             Type = type;
         }
 
-        public IHashAlgorithm HashAlgorithm { get; private set; }
-        public IRollingChecksum RollingChecksumAlgorithm { get; private set; }
-        public List<ChunkSignature> Chunks { get; private set; } 
-        public SignatureMetadata Metadata { get; private set; }
+        public IHashAlgorithm HashAlgorithm { get; private set; } = null!;
+        public IRollingChecksum RollingChecksumAlgorithm { get; private set; } = null!;
+        public List<ChunkSignature> Chunks { get; private set; } = null!;
+        public SignatureMetadata Metadata { get; private set; } = null!;
         public RsyncFormatType Type { get; private set; }
     }
 }
