@@ -136,7 +136,7 @@ namespace FastRsync.Signature
             long start = 0;
             int read;
             var block = new byte[ChunkSize];
-            while ((read = baseFileStream.Read(block, 0, block.Length)) > 0)
+            while ((read = baseFileStream.Read(block.AsSpan(0, ChunkSize))) > 0)
             {
                 signatureWriter.WriteChunk(new ChunkSignature
                 {
@@ -172,7 +172,7 @@ namespace FastRsync.Signature
             long start = 0;
             int read;
             var block = new byte[ChunkSize];
-            while ((read = await baseFileStream.ReadAsync(block, 0, block.Length, cancellationToken).ConfigureAwait(false)) > 0)
+            while ((read = await baseFileStream.ReadAsync(block.AsMemory(0, ChunkSize), cancellationToken).ConfigureAwait(false)) > 0)
             {
                 await signatureWriter.WriteChunkAsync(new ChunkSignature
                 {

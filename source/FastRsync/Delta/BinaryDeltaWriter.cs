@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -49,14 +50,21 @@ namespace FastRsync.Delta
             {
                 source.Seek(offset, SeekOrigin.Begin);
 
-                var buffer = new byte[(int)Math.Min(length, readWriteBufferSize)];
-
-                int read;
-                long soFar = 0;
-                while ((read = source.Read(buffer, 0, (int)Math.Min(length - soFar, buffer.Length))) > 0)
+                int bufferSize = (int)Math.Min(length, readWriteBufferSize);
+                byte[]? buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                try
                 {
-                    soFar += read;
-                    writer.Write(buffer, 0, read);
+                    int read;
+                    long soFar = 0;
+                    while ((read = source.Read(buffer, 0, (int)Math.Min(length - soFar, bufferSize))) > 0)
+                    {
+                        soFar += read;
+                        writer.Write(buffer, 0, read);
+                    }
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
                 }
             }
             finally
@@ -76,16 +84,23 @@ namespace FastRsync.Delta
             {
                 source.Seek(offset, SeekOrigin.Begin);
 
-                var buffer = new byte[(int)Math.Min(length, readWriteBufferSize)];
-
-                int read;
-                long soFar = 0;
-                while ((read = await source
-                           .ReadAsync(buffer, 0, (int)Math.Min(length - soFar, buffer.Length), cancellationToken)
-                           .ConfigureAwait(false)) > 0)
+                int bufferSize = (int)Math.Min(length, readWriteBufferSize);
+                byte[]? buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                try
                 {
-                    soFar += read;
-                    await deltaStream.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
+                    int read;
+                    long soFar = 0;
+                    while ((read = await source
+                               .ReadAsync(buffer, 0, (int)Math.Min(length - soFar, bufferSize), cancellationToken)
+                               .ConfigureAwait(false)) > 0)
+                    {
+                        soFar += read;
+                        await deltaStream.WriteAsync(buffer, 0, read, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
                 }
             }
             finally

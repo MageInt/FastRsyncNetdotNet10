@@ -26,7 +26,12 @@ namespace FastRsync.Core
 
             public static IHashAlgorithm XxHash3()
             {
-                return new NonCryptographicHashAlgorithmWrapper("XXH3", new XxHash3());
+#if NET7_0_OR_GREATER
+                return new XxHash3Wrapper();
+#else
+                // Fallback to xxHash64 on older frameworks
+                return XxHash();
+#endif
             }
 
             public static IHashAlgorithm Default()
